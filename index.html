@@ -67,18 +67,29 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 16px)}
 body{
-  background:var(--bg);color:var(--ink);
+  background-color:var(--bg);color:var(--ink);
   font-family:var(--font-sans);
   font-size:1rem;line-height:1.75;
   -webkit-font-smoothing:antialiased;
   transition:background .4s,color .4s;
   overflow-x:hidden;
+  /* 浅色模式文艺底纹:极淡浮点网格 + 角落轻雾,让暖白底有纸张质感而不抢眼 */
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(26,26,26,.10) 1px, transparent 1.2px),
+    radial-gradient(ellipse 90% 70% at 12% -8%, rgba(255,77,0,.14), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 105% 108%, rgba(255,170,0,.135), transparent 55%);
+  background-size:26px 26px,100% 100%,100% 100%;
+}
+[data-theme="dark"] body{
+  background-image:none; /* 深色模式保留纯色夜底,氛围交给流星 */
 }
 /* 纸张噪点纹理(内联 data-uri,无外部资源) */
 body::before{
-  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.028;
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.078;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
 }
+/* 噪点加浓仅针对白天模式,深色模式保持原浓度 */
+[data-theme="dark"] body::before{opacity:.028}
 img,svg{display:block;max-width:100%}
 a{color:inherit}
 button{font-family:inherit}
@@ -180,6 +191,11 @@ button{font-family:inherit}
 .icon-sun{display:none}
 [data-theme="dark"] .icon-sun{display:block}
 [data-theme="dark"] .icon-moon{display:none}
+/* 音效开关:开启时扬声器图标呈强调色 */
+#soundToggle.on{color:var(--accent);border-color:var(--accent)}
+.icon-snd-on{display:none}
+#soundToggle.on .icon-snd-on{display:block}
+#soundToggle.on .icon-snd-off{display:none}
 /* 汉堡按钮 */
 .hamburger{display:none}
 .hb-box{display:grid;gap:6px;width:18px}
@@ -216,6 +232,7 @@ body.menu-open .hb-box span:last-child{transform:translateY(-4px) rotate(-45deg)
   body.menu-open .mm-link:nth-child(4){transition-delay:.2s}
   body.menu-open .mm-link:nth-child(5){transition-delay:.25s}
   body.menu-open .mm-link:nth-child(6){transition-delay:.3s}
+  body.menu-open .mm-link:nth-child(7){transition-delay:.35s}
   .mm-foot{margin-top:auto;padding-top:32px;font-size:.8rem;color:var(--ink-60);display:flex;flex-direction:column;gap:6px;letter-spacing:.06em}
 }
 body.menu-open{overflow:hidden}
@@ -329,6 +346,45 @@ body.menu-open{overflow:hidden}
 @keyframes mqScroll{to{transform:translateX(-50%)}}
 
 /* ============================================================
+   内容层级:让装饰层(流星)始终位于页面内容之下
+   ============================================================ */
+main{position:relative;z-index:1}
+footer{position:relative;z-index:1}
+
+/* ============================================================
+   深色模式:夜空流星(黑白主题,偶尔划过,带拖尾)
+   ============================================================ */
+.stars{display:none}
+[data-theme="dark"] .stars{
+  display:block;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+}
+.star{
+  position:absolute;width:150px;height:1.5px;border-radius:999px;
+  background:linear-gradient(90deg,transparent,rgba(242,240,234,.95));
+  opacity:0;--ang:30deg;
+  animation:meteor 11s linear infinite;
+}
+/* 流星头部光点 */
+.star::before{
+  content:"";position:absolute;right:-3px;top:50%;transform:translateY(-50%);
+  width:5px;height:5px;border-radius:50%;background:#F2F0EA;
+  box-shadow:0 0 12px 3px rgba(242,240,234,.35);
+}
+/* 六颗流星:位置 / 角度 / 周期错开,营造"时不时划过"的节奏 */
+.star:nth-child(1){top:12%;left:-6%}
+.star:nth-child(2){top:30%;left:62%;--ang:158deg;animation-duration:13s;animation-delay:3.8s}
+.star:nth-child(3){top:6%;left:38%;--ang:36deg;animation-duration:15s;animation-delay:7.2s}
+.star:nth-child(4){top:52%;left:12%;--ang:24deg;animation-duration:17s;animation-delay:11s}
+.star:nth-child(5){top:20%;left:74%;--ang:152deg;animation-duration:19s;animation-delay:5.5s}
+.star:nth-child(6){top:44%;left:-6%;--ang:34deg;animation-duration:21s;animation-delay:14.5s}
+@keyframes meteor{
+  0%{transform:rotate(var(--ang)) translateX(-280px);opacity:0}
+  3%{opacity:1}
+  12%{transform:rotate(var(--ang)) translateX(1150px);opacity:0}
+  100%{transform:rotate(var(--ang)) translateX(1150px);opacity:0}
+}
+
+/* ============================================================
    01 关于我
    ============================================================ */
 .about-grid{display:grid;grid-template-columns:minmax(180px,1fr) 2.4fr;gap:clamp(36px,5vw,90px);align-items:start}
@@ -390,9 +446,10 @@ body.menu-open{overflow:hidden}
   display:flex;flex-direction:column;overflow:hidden;
   transition:transform .45s var(--ease),background .45s,color .45s,border-color .45s,box-shadow .45s;
 }
-.p-card:nth-child(1){grid-column:span 7}
-.p-card:nth-child(2){grid-column:span 5;margin-top:72px}
-.p-card:nth-child(3){grid-column:9 / span 4;border-style:dashed}
+/* 阶梯布局:智能车(大卡) → 地球科学(错落) → 下一件作品(紧贴右下,逐级缩小) */
+.p-card:nth-child(1){grid-column:1 / 8;grid-row:1 / 3}
+.p-card:nth-child(2){grid-column:8 / 13;grid-row:1;margin-top:72px}
+.p-card:nth-child(3){grid-column:9 / 13;grid-row:2}
 .p-card:hover{transform:translateY(-8px);background:var(--ink);color:var(--bg);border-color:var(--ink);box-shadow:var(--shadow-soft)}
 /* 顶部视觉条:色块 + 大编号 */
 .p-visual{position:relative;height:104px;background:var(--accent);color:var(--on-accent);display:flex;align-items:flex-end;padding:16px 20px;overflow:hidden}
@@ -417,16 +474,47 @@ body.menu-open{overflow:hidden}
   font-size:.74rem;letter-spacing:.14em;color:var(--accent-ink);font-weight:600;
 }
 .p-card:hover .p-meta{border-top-color:var(--line-invert);color:var(--bg);opacity:.85}
+/* 项目配图:细框相纸质感,悬停时随卡片反色 */
+.p-figure{
+  margin-top:6px;border:1px solid var(--line);padding:8px;background:var(--bg);
+  display:flex;flex-direction:column;gap:8px;
+}
+.p-figure img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.p-figure figcaption{font-size:.72rem;letter-spacing:.14em;color:var(--ink-60)}
+.p-card:hover .p-figure{border-color:var(--line-invert)}
+.p-card:hover .p-figure figcaption{color:var(--bg);opacity:.7}
 .p-arrow{font-size:1.5rem;line-height:1;font-family:var(--font-serif);font-style:italic}
 /* 占位卡 */
-.p-card.is-soon{align-items:center;justify-content:center;text-align:center;padding:56px 30px;gap:10px}
+.p-card.is-soon{align-items:center;justify-content:center;text-align:center;padding:56px 30px;gap:10px;border-style:dashed}
 .p-card.is-soon .p-soon-year{position:absolute;top:16px;right:18px;font-size:.7rem;letter-spacing:.2em;color:var(--ink-60)}
 .p-card.is-soon .p-soon-mark{font-size:2.2rem;color:var(--accent)}
 .p-card.is-soon .p-soon-title{font-weight:700;font-size:1.05rem}
 .p-card.is-soon .p-soon-sub{font-family:var(--font-serif);font-style:italic;color:var(--ink-60);font-size:.95rem}
+/* 小游戏展位卡(预留) */
+.p-card.is-game{border-style:dashed}
+.p-card.is-game .g-screen{
+  position:relative;overflow:hidden;aspect-ratio:16/9;
+  background:var(--bg);border-bottom:1px solid var(--line);
+  display:grid;place-items:center;color:var(--ink-40);
+}
+/* 像素点阵纹理(呼应小游戏主题) */
+.p-card.is-game .g-screen::before{
+  content:"";position:absolute;inset:0;opacity:.5;
+  background-image:radial-gradient(var(--ink-40) 1px,transparent 1px);
+  background-size:11px 11px;
+}
+.p-card.is-game .g-screen svg{position:relative;opacity:.75;transition:transform .45s var(--ease)}
+.p-card.is-game:hover .g-screen svg{transform:scale(1.15) rotate(-6deg)}
+.p-card:hover .g-screen{border-bottom-color:var(--line-invert)}
 
 /* ============================================================
-   04 教育
+   04 个人作品(小游戏展位)
+   ============================================================ */
+.works-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(16px,2vw,28px)}
+.works-grid .p-card{grid-column:span 6}
+
+/* ============================================================
+   05 教育
    ============================================================ */
 .edu-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:clamp(16px,2vw,28px)}
 .edu-card{
@@ -446,7 +534,7 @@ body.menu-open{overflow:hidden}
 .edu-card.is-featured .tag{background:transparent;border-color:var(--line-invert)}
 
 /* ============================================================
-   05 荣誉
+   06 荣誉
    ============================================================ */
 .award-row{
   display:grid;grid-template-columns:64px 1fr auto;gap:clamp(16px,3vw,36px);align-items:center;
@@ -514,7 +602,7 @@ body.lb-open{overflow:hidden}
 }
 
 /* ============================================================
-   06 联系 / 页脚
+   07 联系 / 页脚
    ============================================================ */
 .contact-grid{display:grid;grid-template-columns:minmax(180px,1fr) 2.4fr;gap:clamp(36px,5vw,90px);align-items:start}
 .contact-note{margin-top:22px;color:var(--ink-60);font-size:.95rem;max-width:30ch}
@@ -547,13 +635,47 @@ body.lb-open{overflow:hidden}
 .to-top{
   position:fixed;right:26px;bottom:26px;z-index:90;
   width:52px;height:52px;border-radius:50%;
-  border:1px solid var(--line);background:var(--bg);color:var(--ink);
-  display:grid;place-items:center;cursor:pointer;font-size:1.05rem;
+  border:1px solid var(--ink);background:var(--ink);color:var(--bg);
+  display:grid;place-items:center;cursor:pointer;font-size:1.15rem;font-weight:600;
+  box-shadow:0 8px 24px -8px rgba(26,26,26,.45);
   opacity:0;visibility:hidden;transform:translateY(14px);
   transition:opacity .35s,transform .35s var(--ease),visibility .35s,background .3s,color .3s,border-color .3s;
 }
-.to-top.show{opacity:1;visibility:visible;transform:none}
-.to-top:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.to-top.show{opacity:1;visibility:visible;transform:none;animation:topGlow 2.8s ease-in-out infinite}
+.to-top:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent);animation:none}
+/* 周期性橙色柔光,吸引注意但不刺眼 */
+@keyframes topGlow{
+  0%,100%{box-shadow:0 8px 24px -8px rgba(26,26,26,.45)}
+  50%{box-shadow:0 8px 30px -6px rgba(255,77,0,.55)}
+}
+
+/* ============================================================
+   悬停功能提示气泡(词组说明按钮用途)
+   ============================================================ */
+.tip{position:relative}
+/* 固定定位的按钮(返回顶部)不被 .tip 的 position 覆盖 */
+.to-top.tip{position:fixed}
+.tip::after{
+  content:attr(data-tip);
+  position:absolute;top:calc(100% + 10px);left:50%;
+  transform:translateX(-50%) translateY(-4px);
+  background:var(--ink);color:var(--bg);
+  font-size:.7rem;letter-spacing:.08em;padding:6px 12px;border-radius:6px;
+  white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .25s,transform .25s var(--ease),visibility .25s;
+}
+.tip::before{
+  content:"";position:absolute;top:calc(100% + 4px);left:50%;
+  width:8px;height:8px;background:var(--ink);
+  transform:translateX(-50%) rotate(45deg);
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .25s,visibility .25s;
+}
+.tip:hover::after,.tip:focus-visible::after{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.tip:hover::before,.tip:focus-visible::before{opacity:1;visibility:visible}
+/* 朝上弹出(屏幕底部按钮用) */
+.tip-up::after{top:auto;bottom:calc(100% + 10px)}
+.tip-up::before{top:auto;bottom:calc(100% + 6px)}
 
 /* ============================================================
    响应式
@@ -563,8 +685,9 @@ body.lb-open{overflow:hidden}
   .about-grid,.contact-grid{grid-template-columns:1fr}
   .about-side{position:static}
   .stats{grid-template-columns:repeat(2,1fr)}
-  .p-card:nth-child(1),.p-card:nth-child(2){grid-column:span 12;margin-top:0}
+  .p-card:nth-child(1),.p-card:nth-child(2){grid-column:span 12;margin-top:0;grid-row:auto}
   .p-card:nth-child(3){grid-column:span 12}
+  .works-grid .p-card{grid-column:span 12}
   .edu-grid{grid-template-columns:1fr}
   .award-row{grid-template-columns:56px 1fr}
   .cert-tile{grid-column:2;justify-self:start}
@@ -607,6 +730,16 @@ body.lb-open{overflow:hidden}
 <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
 <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
+<!-- 夜空流星(仅深色模式,装饰层位于内容之下,共 6 颗) -->
+<div class="stars" aria-hidden="true">
+  <span class="star"></span>
+  <span class="star"></span>
+  <span class="star"></span>
+  <span class="star"></span>
+  <span class="star"></span>
+  <span class="star"></span>
+</div>
+
 <!-- ==================== 顶部导航 ==================== -->
 <header class="nav">
   <div class="nav-inner">
@@ -615,12 +748,19 @@ body.lb-open{overflow:hidden}
       <a href="#about">关于</a>
       <a href="#skills">技能</a>
       <a href="#projects">项目经历</a>
+      <a href="#works">个人作品</a>
       <a href="#education">教育</a>
       <a href="#honors">荣誉</a>
       <a href="#contact">联系</a>
     </nav>
     <div class="nav-actions">
-      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到深色主题" title="切换明暗主题">
+      <button class="icon-btn tip" id="soundToggle" type="button" data-tip="音效开关" aria-label="开启互动音效" aria-pressed="false">
+        <!-- 静音图标(默认状态) -->
+        <svg class="icon-snd-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6.5 9H3v6h3.5L11 19V5z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>
+        <!-- 开启图标 -->
+        <svg class="icon-snd-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6.5 9H3v6h3.5L11 19V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a9 9 0 0 1 0 12"/></svg>
+      </button>
+      <button class="icon-btn tip" id="themeToggle" type="button" data-tip="明暗主题" aria-label="切换到深色主题">
         <!-- 月亮(浅色模式显示) -->
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
         <!-- 太阳(深色模式显示) -->
@@ -638,9 +778,10 @@ body.lb-open{overflow:hidden}
   <a class="mm-link" href="#about">关于<i>01 About</i></a>
   <a class="mm-link" href="#skills">技能<i>02 Skills</i></a>
   <a class="mm-link" href="#projects">项目经历<i>03 Projects &amp; Experience</i></a>
-  <a class="mm-link" href="#education">教育<i>04 Education</i></a>
-  <a class="mm-link" href="#honors">荣誉<i>05 Honors</i></a>
-  <a class="mm-link" href="#contact">联系<i>06 Contact</i></a>
+  <a class="mm-link" href="#works">个人作品<i>04 Personal Works</i></a>
+  <a class="mm-link" href="#education">教育<i>05 Education</i></a>
+  <a class="mm-link" href="#honors">荣誉<i>06 Honors</i></a>
+  <a class="mm-link" href="#contact">联系<i>07 Contact</i></a>
   <div class="mm-foot">
     <span>广东 · 深圳</span>
     <span>3037759437@qq.com</span>
@@ -834,6 +975,11 @@ body.lb-open{overflow:hidden}
             <h3 class="p-title">智能车挑战赛项目</h3>
             <p class="p-role">团队成员 · NOC 全国决赛</p>
             <p class="p-desc">全国中小学信息技术创新与实践大赛智能车挑战赛项。作为团队成员,负责智能车的运动参数调试与代码块结构优化,与团队共同打磨赛车性能,保障决赛赛道上的稳定发挥,斩获高中组全国二等奖。</p>
+            <!-- 项目配图:填充卡片中部空白 -->
+            <figure class="p-figure">
+              <img src="images/smartcar.jpg" alt="智能车挑战赛项目图片" loading="lazy">
+              <figcaption>智能车挑战赛项目 · 2024</figcaption>
+            </figure>
             <div class="p-tags">
               <span class="tag">运动参数调试</span><span class="tag">代码块结构优化</span><span class="tag">团队协作</span><span class="tag">竞赛实战</span>
             </div>
@@ -867,11 +1013,61 @@ body.lb-open{overflow:hidden}
     </div>
   </section>
 
-  <!-- ==================== 04 教育 ==================== -->
-  <section class="section" id="education" aria-labelledby="education-title">
+  <!-- ==================== 04 个人作品(小游戏展位) ==================== -->
+  <section class="section" id="works" aria-labelledby="works-title">
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="sec-num" aria-hidden="true">04</span>
+        <h2 class="sec-title" id="works-title">个人作品<span class="sec-en">Personal Works</span></h2>
+      </div>
+      <div class="works-grid">
+        <!-- 作品 01:预留位,后续可将 vibe coding 小游戏(iframe 或新页面链接)放入此卡片 -->
+        <article class="p-card is-game reveal" style="--i:1">
+          <div class="g-screen" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="7.5" width="19" height="9.5" rx="4.5"/>
+              <path d="M7.5 10.5v3M6 12h3"/>
+              <circle cx="15.6" cy="11" r="1"/><circle cx="18.4" cy="13.4" r="1"/>
+            </svg>
+          </div>
+          <div class="p-body">
+            <p class="p-role">作品 01 · VIBE CODING</p>
+            <h3 class="p-title">小游戏 · 预留位</h3>
+            <p class="p-desc">我的 vibe coding 小游戏作品将在这里上线,敬请期待。</p>
+            <div class="p-tags">
+              <span class="tag">预留中</span><span class="tag">敬请期待</span>
+            </div>
+            <p class="p-meta"><span>COMING SOON</span><span class="p-arrow" aria-hidden="true">↗</span></p>
+          </div>
+        </article>
+        <!-- 作品 02 -->
+        <article class="p-card is-game reveal" style="--i:2">
+          <div class="g-screen" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="7.5" width="19" height="9.5" rx="4.5"/>
+              <path d="M7.5 10.5v3M6 12h3"/>
+              <circle cx="15.6" cy="11" r="1"/><circle cx="18.4" cy="13.4" r="1"/>
+            </svg>
+          </div>
+          <div class="p-body">
+            <p class="p-role">作品 02 · VIBE CODING</p>
+            <h3 class="p-title">小游戏 · 预留位</h3>
+            <p class="p-desc">又一个 vibe coding 小游戏展位,作品正在制作中。</p>
+            <div class="p-tags">
+              <span class="tag">预留中</span><span class="tag">敬请期待</span>
+            </div>
+            <p class="p-meta"><span>COMING SOON</span><span class="p-arrow" aria-hidden="true">↗</span></p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 05 教育 ==================== -->
+  <section class="section" id="education" aria-labelledby="education-title">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">05</span>
         <h2 class="sec-title" id="education-title">教育<span class="sec-en">Education</span></h2>
       </div>
       <div class="edu-grid">
@@ -898,11 +1094,11 @@ body.lb-open{overflow:hidden}
     </div>
   </section>
 
-  <!-- ==================== 05 荣誉 ==================== -->
+  <!-- ==================== 06 荣誉 ==================== -->
   <section class="section" id="honors" aria-labelledby="honors-title">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">05</span>
+        <span class="sec-num" aria-hidden="true">06</span>
         <h2 class="sec-title" id="honors-title">荣誉<span class="sec-en">Honors</span></h2>
       </div>
       <!-- 证书图片(带半透明水印),点击缩略图可在页内查看大图 -->
@@ -948,11 +1144,11 @@ body.lb-open{overflow:hidden}
     </div>
   </section>
 
-  <!-- ==================== 06 联系 ==================== -->
+  <!-- ==================== 07 联系 ==================== -->
   <section class="section" id="contact" aria-labelledby="contact-title">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">06</span>
+        <span class="sec-num" aria-hidden="true">07</span>
         <h2 class="sec-title" id="contact-title">联系<span class="sec-en">Contact</span></h2>
       </div>
       <div class="contact-grid">
@@ -997,7 +1193,7 @@ body.lb-open{overflow:hidden}
 </footer>
 
 <!-- 返回顶部 -->
-<button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
+<button class="to-top tip tip-up" id="toTop" type="button" data-tip="返回顶部" aria-label="返回顶部">↑</button>
 
 <!-- 证书大图预览(灯箱) -->
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="证书大图预览">
@@ -1016,7 +1212,6 @@ body.lb-open{overflow:hidden}
   function syncThemeLabel(){
     var dark = root.dataset.theme === 'dark';
     themeBtn.setAttribute('aria-label', dark ? '切换到浅色主题' : '切换到深色主题');
-    themeBtn.setAttribute('title', dark ? '切换到浅色主题' : '切换到深色主题');
   }
   syncThemeLabel();
   themeBtn.addEventListener('click', function(){
@@ -1131,6 +1326,7 @@ body.lb-open{overflow:hidden}
         label.textContent = '已复制 ✓';
         btn.classList.add('copied');
         copyStatus.textContent = statusMsg;
+        sDing(); /* 复制成功双音叮咚 */
         setTimeout(function(){
           label.textContent = '复制';
           btn.classList.remove('copied');
@@ -1171,11 +1367,13 @@ body.lb-open{overflow:hidden}
     lightbox.classList.add('open');
     document.body.classList.add('lb-open');
     lbClose.focus();
+    sWhoosh(true); /* 灯箱展开呼啸 */
   }
   function closeLb(){
     lightbox.classList.remove('open');
     document.body.classList.remove('lb-open');
     if (lastFocus) lastFocus.focus();
+    sWhoosh(false); /* 灯箱收起呼啸 */
   }
   certTiles.forEach(function(t){
     t.addEventListener('click', function(){ openLb(t); });
@@ -1190,6 +1388,126 @@ body.lb-open{overflow:hidden}
   /* ---------- 9. 页脚年份自动更新 ---------- */
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  /* ---------- 10. 互动音效(Web Audio 现场合成,无外部资源,默认关闭) ---------- */
+  var soundBtn = document.getElementById('soundToggle');
+  var soundEnabled = false;
+  try { soundEnabled = localStorage.getItem('yh-sound') === 'on'; } catch(e) {}
+  var audioCtx = null, masterGain = null;
+
+  /* 创建/唤醒音频上下文 */
+  function ensureCtx(){
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  /* 总音量母线:克制而清晰 */
+  function getMaster(){
+    if (!masterGain && audioCtx) {
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.16;
+      masterGain.connect(audioCtx.destination);
+    }
+    return masterGain;
+  }
+  /* 短促滴答:悬停 / 通用点击 */
+  function sTick(freq, dur, vol){
+    var ctx = ensureCtx(); if (!ctx || !soundEnabled) return;
+    var t = ctx.currentTime;
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = freq || 980;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol || 0.4, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.06));
+    o.connect(g); g.connect(getMaster());
+    o.start(t); o.stop(t + (dur || 0.06) + 0.05);
+  }
+  /* 噪声扫频呼啸:菜单 / 灯箱开合、主题切换 */
+  function sWhoosh(up){
+    var ctx = ensureCtx(); if (!ctx || !soundEnabled) return;
+    var dur = 0.28, t = ctx.currentTime;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.8;
+    f.frequency.setValueAtTime(up ? 320 : 900, t);
+    f.frequency.exponentialRampToValueAtTime(up ? 1250 : 260, t + dur);
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.55, t + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(getMaster());
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+  /* 双音叮咚:复制成功 */
+  function sDing(){
+    sTick(880, 0.1, 0.4);
+    setTimeout(function(){ sTick(1318, 0.16, 0.4); }, 85);
+  }
+
+  /* 开关状态同步(图标 / ARIA / 记忆) */
+  function syncSoundUI(){
+    soundBtn.classList.toggle('on', soundEnabled);
+    soundBtn.setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
+    soundBtn.setAttribute('aria-label', soundEnabled ? '关闭互动音效' : '开启互动音效');
+  }
+  function saveSoundPref(){
+    try { localStorage.setItem('yh-sound', soundEnabled ? 'on' : 'off'); } catch(e) {}
+  }
+  syncSoundUI();
+
+  /* 首次手势解锁音频上下文(浏览器自动播放策略要求) */
+  window.addEventListener('pointerdown', function unlock(){ if (soundEnabled) ensureCtx(); }, { once: true, passive: true });
+  window.addEventListener('keydown', function unlock(){ if (soundEnabled) ensureCtx(); }, { once: true, passive: true });
+
+  /* 音效开关:开启播放上行呼啸确认,关闭播放下行呼啸后静音 */
+  soundBtn.addEventListener('click', function(){
+    if (!soundEnabled) {
+      soundEnabled = true; syncSoundUI(); saveSoundPref();
+      sWhoosh(true);
+    } else {
+      sWhoosh(false);
+      setTimeout(function(){ soundEnabled = false; syncSoundUI(); saveSoundPref(); }, 150);
+    }
+  });
+
+  /* 主题切换:入夜下滑 / 日出上扬(在原主题逻辑之后触发) */
+  themeBtn.addEventListener('click', function(){
+    if (!soundEnabled) return;
+    sWhoosh(root.dataset.theme === 'light');
+  });
+  /* 汉堡菜单:开合呼啸 */
+  menuBtn.addEventListener('click', function(){
+    if (!soundEnabled) return;
+    sWhoosh(document.body.classList.contains('menu-open'));
+  });
+  /* 返回顶部:"唰"的一声 */
+  toTop.addEventListener('click', function(){
+    if (soundEnabled) sWhoosh(true);
+  });
+  /* 通用点击滴答(特殊按钮已有专属音效,跳过) */
+  var NO_TICK = ['themeToggle', 'menuBtn', 'copyWx', 'copyEmail', 'lbClose', 'toTop', 'soundToggle'];
+  document.addEventListener('click', function(e){
+    if (!soundEnabled || !audioCtx) return;
+    var el = e.target.closest('a, button');
+    if (!el || NO_TICK.indexOf(el.id) !== -1) return;
+    sTick(980, 0.05, 0.32);
+  });
+  /* 悬停轻响:卡片 / 标签等非按钮元素,节流防止连响 */
+  var lastHoverTs = 0;
+  document.addEventListener('mouseover', function(e){
+    if (!soundEnabled || !audioCtx) return;
+    if (!e.target.closest('.tag, .p-card, .edu-card, .stat, .award-row, .cert-tile')) return;
+    var now = performance.now();
+    if (now - lastHoverTs < 70) return;
+    lastHoverTs = now;
+    sTick(2400, 0.02, 0.1);
+  });
 })();
 </script>
 
