@@ -504,6 +504,15 @@ footer{position:relative;z-index:1}
   background-size:11px 11px;
 }
 .p-card.is-game .g-screen svg{position:relative;opacity:.75;transition:transform .45s var(--ease)}
+/* 作品视频:铺满游戏屏区域 */
+.p-card.is-game .g-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#000}
+/* 音量提示角标:悬浮于视频左上角,不阻挡控制条 */
+.p-card.is-game .g-vol-hint{
+  position:absolute;top:10px;left:10px;z-index:2;
+  background:rgba(0,0,0,.62);color:rgba(255,255,255,.92);
+  font-size:.68rem;letter-spacing:.06em;padding:5px 10px;border-radius:6px;
+  pointer-events:none;white-space:nowrap;
+}
 .p-card.is-game:hover .g-screen svg{transform:scale(1.15) rotate(-6deg)}
 .p-card:hover .g-screen{border-bottom-color:var(--line-invert)}
 
@@ -1021,23 +1030,21 @@ body.lb-open{overflow:hidden}
         <h2 class="sec-title" id="works-title">个人作品<span class="sec-en">Personal Works</span></h2>
       </div>
       <div class="works-grid">
-        <!-- 作品 01:预留位,后续可将 vibe coding 小游戏(iframe 或新页面链接)放入此卡片 -->
+        <!-- 作品 01:坦克大战小游戏(视频为实机屏幕录制) -->
         <article class="p-card is-game reveal" style="--i:1">
-          <div class="g-screen" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2.5" y="7.5" width="19" height="9.5" rx="4.5"/>
-              <path d="M7.5 10.5v3M6 12h3"/>
-              <circle cx="15.6" cy="11" r="1"/><circle cx="18.4" cy="13.4" r="1"/>
-            </svg>
+          <div class="g-screen">
+            <!-- 音量提示:视频内游戏声音较大,提醒访客先调低音量 -->
+            <span class="g-vol-hint" role="note">🔊 视频声音较大,注意调小播放音量</span>
+            <video class="g-video" src="videos/tankbattle.mp4" controls preload="metadata" playsinline></video>
           </div>
           <div class="p-body">
             <p class="p-role">作品 01 · VIBE CODING</p>
-            <h3 class="p-title">小游戏 · 预留位</h3>
-            <p class="p-desc">我的 vibe coding 小游戏作品将在这里上线,敬请期待。</p>
+            <h3 class="p-title">坦克大战小游戏</h3>
+            <p class="p-desc">用 vibe coding 方式制作的《坦克大战》小游戏,点击视频即可观看实机演示。</p>
             <div class="p-tags">
-              <span class="tag">预留中</span><span class="tag">敬请期待</span>
+              <span class="tag">Vibe Coding</span><span class="tag">小游戏</span><span class="tag">实机演示</span>
             </div>
-            <p class="p-meta"><span>COMING SOON</span><span class="p-arrow" aria-hidden="true">↗</span></p>
+            <p class="p-meta"><span>屏幕录制 · 2026</span><span class="p-arrow" aria-hidden="true">▶</span></p>
           </div>
         </article>
         <!-- 作品 02 -->
@@ -1409,7 +1416,7 @@ body.lb-open{overflow:hidden}
   function getMaster(){
     if (!masterGain && audioCtx) {
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.16;
+      masterGain.gain.value = 0.60;
       masterGain.connect(audioCtx.destination);
     }
     return masterGain;
@@ -1439,7 +1446,7 @@ body.lb-open{overflow:hidden}
     f.frequency.exponentialRampToValueAtTime(up ? 1250 : 260, t + dur);
     var g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.55, t + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.50, t + 0.06);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(getMaster());
     src.start(t); src.stop(t + dur + 0.05);
