@@ -512,13 +512,14 @@ footer{position:relative;z-index:1}
   transition:transform .45s var(--ease),background .45s,color .45s,border-color .45s,box-shadow .45s;
 }
 /* 阶梯布局:智能车(大卡) → 地球科学(错落) → 下一件作品(紧贴右下,逐级缩小) */
-.p-card:nth-child(1){grid-column:1 / 8;grid-row:1 / 3}
-.p-card:nth-child(2){grid-column:8 / 13;grid-row:1;margin-top:72px}
-.p-card:nth-child(3){grid-column:9 / 13;grid-row:2}
+/* 阶梯布局仅作用于「项目经历」栏(.p-grid);不可写成全局 .p-card:nth-child,否则会污染「个人作品」栏的网格 */
+.p-grid .p-card:nth-child(1){grid-column:1 / 8;grid-row:1 / 3}
+.p-grid .p-card:nth-child(2){grid-column:8 / 13;grid-row:1;margin-top:72px}
+.p-grid .p-card:nth-child(3){grid-column:9 / 13;grid-row:2}
 .p-card:hover{transform:translateY(-12px);background:var(--ink);color:var(--bg);border-color:var(--ink);box-shadow:var(--shadow-card-hover)}
 /* 顶部视觉条:色块 + 大编号 */
 .p-visual{position:relative;height:104px;background:var(--accent);color:var(--on-accent);display:flex;align-items:flex-end;padding:16px 20px;overflow:hidden}
-.p-card:nth-child(2) .p-visual{background:var(--ink);color:var(--bg)}
+.p-grid .p-card:nth-child(2) .p-visual{background:var(--ink);color:var(--bg)}
 .p-visual::after{
   content:"";position:absolute;inset:0;opacity:.16;
   background-image:radial-gradient(currentColor 1.2px,transparent 1.2px);
@@ -557,7 +558,8 @@ footer{position:relative;z-index:1}
 .p-card.is-soon .p-soon-sub{font-family:var(--font-serif);font-style:italic;color:var(--ink-60);font-size:.95rem}
 /* 小游戏展位卡(预留) */
 .p-card.is-game{border-style:dashed}
-.p-card.is-game .g-screen{
+/* 展位屏基础样式:通用(游戏卡与 PCB 卡共用),勿限定在 .is-game 下 */
+.p-card .g-screen{
   position:relative;overflow:hidden;aspect-ratio:16/9;
   background:var(--bg);border-bottom:1px solid var(--line);
   display:grid;place-items:center;color:var(--ink-40);
@@ -600,6 +602,58 @@ footer{position:relative;z-index:1}
    ============================================================ */
 .works-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(16px,2vw,28px)}
 .works-grid .p-card{grid-column:span 6}
+
+/* ---- PCB 3D 查看器卡(单独占满整宽) ---- */
+:root{--board-halo:rgba(201,164,92,.18)}
+[data-theme="dark"]{--board-halo:rgba(201,164,92,.12)}
+.works-grid .p-card.is-board{grid-column:span 12}
+.p-card.is-board .g-screen{aspect-ratio:2.4/1}
+/* 舞台:中心暖金光晕 + 底部暗角纵深 */
+.board-stage{background:radial-gradient(130% 100% at 50% 8%, var(--board-halo) 0%, transparent 62%), var(--bg)}
+.board-stage::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 95% at 50% 115%, rgba(0,0,0,.18), transparent 62%);
+}
+[data-theme="dark"] .board-stage::after{background:radial-gradient(120% 95% at 50% 115%, rgba(0,0,0,.5), transparent 64%)}
+/* 静态封面(底层,3D 就绪后淡出) */
+.board-shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;transition:opacity .5s var(--ease)}
+/* 3D 画布(懒创建,首帧后淡入) */
+.board-gl{
+  position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;
+  opacity:0;transition:opacity .5s var(--ease);
+  touch-action:none;cursor:grab;outline-offset:-4px;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+}
+.board-gl.is-live{opacity:1}
+.board-gl.is-drag{cursor:grabbing}
+/* 操作提示与工具按钮:常显(便于发现),悬停时更清晰 */
+.board-hint{
+  position:absolute;left:12px;bottom:12px;z-index:3;pointer-events:none;white-space:nowrap;
+  background:rgba(20,18,16,.6);color:rgba(250,249,246,.92);
+  font-size:.68rem;letter-spacing:.06em;padding:5px 10px;border-radius:6px;
+  opacity:0;transition:opacity .5s var(--ease);
+}
+.board-stage.is-ready .board-hint{opacity:.85}
+.board-stage.is-ready:hover .board-hint{opacity:1}
+/* 右下角工具组:缩小 / 放大 / 重置(就绪后常显,悬停更清晰) */
+.board-tools{
+  position:absolute;right:12px;bottom:12px;z-index:3;
+  display:flex;gap:6px;
+  opacity:0;transition:opacity .3s var(--ease);
+}
+.board-stage.is-ready .board-tools{opacity:.72}
+.board-stage.is-ready:hover .board-tools{opacity:1}
+.board-btn{
+  width:30px;height:30px;display:grid;place-items:center;padding:0;
+  border:1px solid rgba(250,249,246,.24);border-radius:50%;
+  background:rgba(20,18,16,.6);color:rgba(250,249,246,.9);
+  font-size:.9rem;line-height:1;cursor:pointer;
+  transition:transform .3s var(--ease),background .3s,border-color .3s,color .3s;
+}
+.board-btn:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.board-btn:active{transform:scale(.85)}
+#pcbReset:hover{transform:rotate(-40deg)}
+@media (hover:none){.board-tools,.board-hint{opacity:1}} /* 触摸端常驻显示 */
 
 /* ============================================================
    05 教育
@@ -786,9 +840,10 @@ body.lb-open{overflow:hidden}
   .about-grid,.contact-grid{grid-template-columns:1fr}
   .about-side{position:static}
   .stats{grid-template-columns:repeat(2,1fr)}
-  .p-card:nth-child(1),.p-card:nth-child(2){grid-column:span 12;margin-top:0;grid-row:auto}
-  .p-card:nth-child(3){grid-column:span 12}
+  .p-grid .p-card:nth-child(1),.p-grid .p-card:nth-child(2){grid-column:span 12;margin-top:0;grid-row:auto}
+  .p-grid .p-card:nth-child(3){grid-column:span 12}
   .works-grid .p-card{grid-column:span 12}
+  .p-card.is-board .g-screen{aspect-ratio:16/10} /* 窄屏改用更高比例,保证 3D 有足够展示高度 */
   .edu-grid{grid-template-columns:1fr}
   .cert-card{flex-basis:clamp(230px,48vw,280px)}
   .hero::before{right:-24vw;top:-24vw;width:80vw;height:80vw}
@@ -1170,6 +1225,30 @@ body.lb-open{overflow:hidden}
             <p class="p-meta"><span>网页版 · 2026</span><span class="p-arrow" aria-hidden="true">↗</span></p>
           </div>
         </article>
+        <!-- 作品 03:51 单片机核心板 PCB(3D 可拖拽查看) -->
+        <article class="p-card is-board reveal" style="--i:3" id="pcbCard">
+          <div class="g-screen board-stage" id="pcbStage">
+            <!-- 静态封面(底层):3D 首帧就绪后淡出 -->
+            <img class="board-shot" id="pcbShot" src="images/pcb-cover.jpg" loading="lazy" decoding="async" draggable="false" alt="51 单片机核心板 PCB 顶面 3D 视图:蓝色阻焊、金色焊盘与白色丝印">
+            <!-- 3D 画布:JS 能力探测通过后才初始化 -->
+            <canvas class="board-gl" id="pcbGl" role="img" tabindex="0" aria-label="51 单片机核心板 PCB 三维模型,可用鼠标或手指拖拽旋转查看各角度,方向键同样可旋转"></canvas>
+            <span class="board-hint" id="pcbHint">拖动旋转 · Ctrl+滚轮缩放 · 双指缩放</span>
+            <div class="board-tools">
+              <button class="board-btn" id="pcbZoomOut" type="button" aria-label="缩小视图">−</button>
+              <button class="board-btn" id="pcbZoomIn" type="button" aria-label="放大视图">+</button>
+              <button class="board-btn" id="pcbReset" type="button" aria-label="重置为俯视图">↻</button>
+            </div>
+          </div>
+          <div class="p-body">
+            <p class="p-role">作品 03 · 硬件设计</p>
+            <h3 class="p-title">51 单片机核心板 PCB 绘制</h3>
+            <p class="p-desc">从原理图到 PCB 布局布线的完整硬件设计:以 51 单片机为核心,含 USB 供电、排针扩展与丝印标注,板卡尺寸 70×40mm。上方模型可 360° 拖拽查看各角度。</p>
+            <div class="p-tags">
+              <span class="tag">LCEDA Pro</span><span class="tag">原理图设计</span><span class="tag">PCB 布局布线</span><span class="tag">3D 可视化</span>
+            </div>
+            <p class="p-meta"><span>硬件作品 · 2026</span><span class="p-arrow" aria-hidden="true">↻</span></p>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -1407,7 +1486,7 @@ body.lb-open{overflow:hidden}
       else { raf = 0; }
     }
     /* 悬停可交互元素时光环放大 */
-    var HOVER_SEL = 'a, button, .tag, .p-card, .edu-card, .stat, .award-row, .cert-card';
+    var HOVER_SEL = 'a, button, .tag, .p-card, .edu-card, .stat, .award-row, .cert-card, .board-gl';
     document.addEventListener('mouseover', function(e){
       if (e.target.closest(HOVER_SEL)) ring.classList.add('is-hover');
     });
@@ -1758,6 +1837,419 @@ body.lb-open{overflow:hidden}
       setTimeout(function(){ if (sp.parentNode) sp.parentNode.removeChild(sp); }, 950);
     }, { passive: true });
   }
+
+  /* ---------- 13. PCB 3D 查看器(原生 WebGL1,零依赖,懒加载) ---------- */
+  (function(){
+    var stage = document.getElementById('pcbStage');
+    var canvas = document.getElementById('pcbGl');
+    var shot = document.getElementById('pcbShot');
+    var resetBtn = document.getElementById('pcbReset');
+    if (!stage || !canvas || !shot) return;
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var gl = null, prog = null, uni = {}, aPos = -1;
+    var groups = [], dec = [1,1,1,0,0,0], bbox = null;
+    var inited = false, dead = false;
+
+    /* 相机(球坐标转盘):az 方位 / el 俯仰 / dist 距离 */
+    /* 初始与重置姿态 = 板子顶层的俯视图(el=85° 为 lookAt 的稳定上限,视觉即正俯视) */
+    var HOME = { az: 0, el: 85, dist: 2.0 };
+    var az = HOME.az, el = HOME.el, dist = HOME.dist;
+    var vAz = 0, vEl = 0, dragging = false, pointers = 0;
+    var lastX = 0, lastY = 0, lastT = 0, lastMove = 0, lastAct = performance.now();
+    var spin = 0, tween = null, rafId = 0, visible = false, lastFrame = 0;
+
+    /* 三点布光(视图空间:任何角度都不会黑;窗口为深色时切"黑金"调) */
+    var LIGHT = {
+      light: { key:{d:[-0.45,0.62,0.65], c:[0.62,0.60,0.55]}, fill:{d:[0.50,-0.20,0.85], c:[0.22,0.24,0.28]},
+               amb:[0.45,0.44,0.42], rim:[0.35,0.22,0.08], rimPow:2.4, specPow:38, specStr:0.5 },
+      dark:  { key:{d:[-0.45,0.62,0.65], c:[0.68,0.62,0.50]}, fill:{d:[0.50,-0.20,0.85], c:[0.14,0.16,0.22]},
+               amb:[0.21,0.21,0.22], rim:[0.42,0.32,0.14], rimPow:2.2, specPow:42, specStr:0.6 }
+    };
+    function themeKey(){ return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'; }
+
+    /* ---- 着色器:导数求面法线(零法线数据),双面光照(模型是开放壳层) ---- */
+    var VS = [
+      'attribute vec3 aPos;',
+      'uniform vec3 uDecS; uniform vec3 uDecO;',
+      'uniform mat4 uView; uniform mat4 uProj;',
+      'varying vec3 vViewPos;',
+      'void main(){',
+      '  vec3 p = aPos * uDecS + uDecO;',
+      '  vec4 vp = uView * vec4(p, 1.0);',
+      '  vViewPos = vp.xyz;',
+      '  gl_Position = uProj * vp;',
+      '}'
+    ].join('\n');
+    var FS = [
+      '#extension GL_OES_standard_derivatives : enable',
+      'precision highp float;',                       /* 必须 highp:亚像素三角形导数否则被吞成 0 → 噪点 */
+      'varying vec3 vViewPos;',
+      'uniform vec3 uBase, uKeyDir, uKeyCol, uFillDir, uFillCol, uAmb, uRim;',
+      'uniform float uRimPow, uSpecPow, uSpecStr;',
+      'void main(){',
+      '  vec3 n = cross(dFdx(vViewPos), dFdy(vViewPos));',
+      '  float nl = length(n);',
+      '  vec3 nn = nl > 1e-20 ? n / nl : vec3(0.0, 0.0, 1.0);',
+      '  vec3 V = normalize(-vViewPos);',
+      '  if (dot(nn, V) < 0.0) nn = -nn;',             /* 双面:法线永远朝向观察者 */
+      '  float diff = max(dot(nn, uKeyDir), 0.0);',
+      '  float fill = max(dot(nn, uFillDir), 0.0);',
+      '  vec3 H = normalize(uKeyDir + V);',
+      '  float spec = pow(max(dot(nn, H), 0.0), uSpecPow) * uSpecStr;',
+      '  float rim = pow(1.0 - max(dot(nn, V), 0.0), uRimPow);',
+      '  vec3 c = uBase * (uAmb + uKeyCol * diff + uFillCol * fill) + uRim * rim + uKeyCol * spec;',
+      '  gl_FragColor = vec4(c, 1.0);',
+      '}'
+    ].join('\n');
+
+    /* ---- 极简 mat4(列主序,WebGL 约定) ---- */
+    function perspective(out, fovy, aspect, near, far){
+      var f = 1 / Math.tan(fovy * Math.PI / 360);
+      out.fill(0);
+      out[0] = f / aspect; out[5] = f;
+      out[10] = (far + near) / (near - far); out[11] = -1;
+      out[14] = 2 * far * near / (near - far);
+      return out;
+    }
+    function lookAt(out, ex, ey, ez, cx, cy, cz){
+      var zx = ex - cx, zy = ey - cy, zz = ez - cz;
+      var zl = Math.hypot(zx, zy, zz) || 1; zx /= zl; zy /= zl; zz /= zl;
+      var xx = 1 * zz - 0 * zy, xy = 0 * zx - 0 * zz, xz = 0 * zy - 1 * zx; /* up=(0,1,0) */
+      var xl = Math.hypot(xx, xy, xz) || 1; xx /= xl; xy /= xl; xz /= xl;
+      var yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+      out[0] = xx; out[1] = yx; out[2] = zx; out[3] = 0;
+      out[4] = xy; out[5] = yy; out[6] = zy; out[7] = 0;
+      out[8] = xz; out[9] = yz; out[10] = zz; out[11] = 0;
+      out[12] = -(xx * ex + xy * ey + xz * ez);
+      out[13] = -(yx * ex + yy * ey + yz * ez);
+      out[14] = -(zx * ex + zy * ey + zz * ez);
+      out[15] = 1;
+      return out;
+    }
+    var view = new Float32Array(16), proj = new Float32Array(16);
+
+    /* ---- 渲染 ---- */
+    function draw(){
+      if (!gl || !prog) return;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+      gl.disable(gl.CULL_FACE);                    /* 开放壳层:必须双面渲染 */
+      perspective(proj, 32, canvas.width / Math.max(1, canvas.height), 0.05, 20);
+      var ar = az * Math.PI / 180, er = el * Math.PI / 180;
+      lookAt(view,
+        dist * Math.cos(er) * Math.sin(ar), dist * Math.sin(er), dist * Math.cos(er) * Math.cos(ar),
+        0, 0, 0);
+      gl.useProgram(prog);
+      gl.uniformMatrix4fv(uni.view, false, view);
+      gl.uniformMatrix4fv(uni.proj, false, proj);
+      var th = LIGHT[themeKey()];
+      for (var i = 0; i < groups.length; i++){
+        var g = groups[i];
+        gl.uniform3f(uni.base, g.color[0], g.color[1], g.color[2]);
+        gl.uniform1f(uni.specStr, th.specStr * (0.35 + 0.65 * g.spec));
+        gl.drawElements(gl.TRIANGLES, g.count, gl.UNSIGNED_SHORT, g.first * 2);
+      }
+    }
+
+    /* ---- 物理步进:惯性 → 自转 → 重置补间 ---- */
+    function needFrame(){
+      return dragging || tween || spin > 0.001 || Math.abs(vAz) > 0.5 || Math.abs(vEl) > 0.5;
+    }
+    function step(dt, now){
+      if (dragging){ lastAct = now; spin = 0; return; }
+      if (!reduced && (Math.abs(vAz) > 0.5 || Math.abs(vEl) > 0.5)){
+        az += vAz * dt; el += vEl * dt;
+        if (el > 85){ el = 85; vEl = 0; }
+        if (el < -85){ el = -85; vEl = 0; }
+        var damp = Math.pow(0.93, dt * 60);
+        vAz *= damp; vEl *= damp;
+      } else { vAz = 0; vEl = 0; }
+      if (!reduced && !tween && now - lastAct > 3500){
+        spin = Math.min(1, spin + dt * 0.7);
+      } else {
+        spin = Math.max(0, spin - dt * 2);
+      }
+      if (spin > 0.001){
+        az += 6 * spin * dt;
+        el += (HOME.el - el) * Math.min(1, dt * 0.3 * spin);
+      }
+      if (tween){
+        tween.t += dt;
+        var k = Math.min(1, tween.t / 0.42);
+        var e = 1 - Math.pow(1 - k, 3);
+        az = tween.az0 + (HOME.az - tween.az0) * e;
+        el = tween.el0 + (HOME.el - tween.el0) * e;
+        dist = tween.d0 + (HOME.dist - tween.d0) * e;
+        if (k >= 1) tween = null;
+      }
+    }
+    function loop(now){
+      rafId = 0;
+      var dt = Math.min(0.05, (now - lastFrame) / 1000) || 0.016;
+      lastFrame = now;
+      step(dt, now);
+      draw();
+      if (visible && needFrame()) schedule();
+    }
+    function schedule(){
+      if (dead || !inited) return;
+      if (!rafId && visible) rafId = requestAnimationFrame(loop);
+    }
+
+    /* ---- 尺寸同步 ---- */
+    function syncSize(){
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var W = Math.max(1, Math.round(canvas.clientWidth * dpr));
+      var H = Math.max(1, Math.round(canvas.clientHeight * dpr));
+      if (canvas.width !== W || canvas.height !== H){
+        canvas.width = W; canvas.height = H;
+        schedule();
+      }
+    }
+    if ('ResizeObserver' in window) new ResizeObserver(function(){ syncSize(); schedule(); }).observe(canvas);
+
+    /* ---- 交互:拖拽旋转 / 惯性 / 双指缩放 / 键盘 ---- */
+    canvas.addEventListener('pointerdown', function(e){
+      if (!inited) return;
+      pointers++;
+      if (pointers > 1){ dragging = false; return; }  /* 双指手势交给 pinch 处理 */
+      dragging = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+      canvas.classList.add('is-drag');
+      lastX = e.clientX; lastY = e.clientY;
+      lastT = performance.now(); lastMove = lastT;
+      vAz = vEl = 0; spin = 0;
+      e.preventDefault();
+    });
+    canvas.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      var now = performance.now();
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      var dtm = Math.max(8, now - lastT);
+      az -= dx * 0.34;
+      el = Math.max(-85, Math.min(85, el + dy * 0.28));
+      vAz = 0.65 * vAz + 0.35 * (-dx * 0.34 * 1000 / dtm);
+      vEl = 0.65 * vEl + 0.35 * (dy * 0.28 * 1000 / dtm);
+      lastX = e.clientX; lastY = e.clientY; lastT = now; lastMove = now; lastAct = now;
+      schedule();
+    });
+    function endDrag(){
+      if (!dragging) return;
+      dragging = false;
+      canvas.classList.remove('is-drag');
+      var now = performance.now();
+      if (now - lastMove > 80){ vAz = 0; vEl = 0; }   /* 停手 80ms 后才松 → 不飘 */
+      lastAct = now;
+      schedule();
+    }
+    canvas.addEventListener('pointerup', function(){ pointers = Math.max(0, pointers - 1); endDrag(); });
+    canvas.addEventListener('pointercancel', function(){ pointers = Math.max(0, pointers - 1); endDrag(); });
+    /* 双指捏合缩放 */
+    var pinch = null;
+    function touchSpan(e){
+      var a = e.touches[0], b = e.touches[1];
+      return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    }
+    canvas.addEventListener('touchstart', function(e){
+      if (e.touches.length === 2){ pinch = { span: touchSpan(e), d0: dist }; dragging = false; }
+    }, { passive: true });
+    canvas.addEventListener('touchmove', function(e){
+      if (pinch && e.touches.length === 2){
+        dist = Math.max(HOME.dist * 0.55, Math.min(HOME.dist * 2.2, pinch.d0 * pinch.span / touchSpan(e)));
+        lastAct = performance.now();
+        schedule();
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchend', function(){ pinch = null; }, { passive: true });
+    /* 键盘(无障碍) */
+    canvas.addEventListener('keydown', function(e){
+      var k = e.key;
+      if (k === 'ArrowLeft') az += 8;
+      else if (k === 'ArrowRight') az -= 8;
+      else if (k === 'ArrowUp') el = Math.min(85, el + 5);
+      else if (k === 'ArrowDown') el = Math.max(-85, el - 5);
+      else if (k === 'Enter') tween = { t: 0, az0: az, el0: el, d0: dist };
+      else return;
+      e.preventDefault();
+      lastAct = performance.now(); spin = 0; schedule();
+    });
+    /* 重置视角(回到俯视图) */
+    function resetView(){
+      tween = { t: 0, az0: az, el0: el, d0: dist };
+      lastAct = performance.now(); spin = 0; schedule();
+    }
+    if (resetBtn) resetBtn.addEventListener('click', resetView);
+    /* 缩放:按钮 + Ctrl+滚轮(普通滚轮不拦截,页面照常滚动) */
+    var zoomInBtn = document.getElementById('pcbZoomIn');
+    var zoomOutBtn = document.getElementById('pcbZoomOut');
+    function zoomBy(f){
+      dist = Math.max(HOME.dist * 0.45, Math.min(HOME.dist * 2.6, dist / f));
+      lastAct = performance.now(); spin = 0; schedule();
+    }
+    if (zoomInBtn) zoomInBtn.addEventListener('click', function(){ zoomBy(1.25); });
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', function(){ zoomBy(0.8); });
+    canvas.addEventListener('wheel', function(e){
+      if (!e.ctrlKey && !e.metaKey) return;   /* 仅 Ctrl/⌘+滚轮缩放 */
+      e.preventDefault();
+      zoomBy(e.deltaY < 0 ? 1.12 : 0.89);
+    }, { passive: false });
+
+    /* ---- 加载与初始化 ---- */
+    function fail(){ dead = true; gl = null; }        /* poster 保持显示,什么都不做 */
+    function buildProgram(){
+      function compile(type, src){
+        var sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+      }
+      var vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, FS);
+      if (!vs || !fs) return false;
+      prog = gl.createProgram();
+      gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
+      gl.useProgram(prog);
+      aPos = gl.getAttribLocation(prog, 'aPos');
+      ['view','proj','decS','decO','base','keyDir','keyCol','fillDir','fillCol','amb','rim','rimPow','specPow','specStr'].forEach(function(n){
+        uni[n] = gl.getUniformLocation(prog, 'u' + n.charAt(0).toUpperCase() + n.slice(1));
+      });
+      return true;
+    }
+    function applyLight(){
+      if (!gl || !prog) return;
+      var th = LIGHT[themeKey()];
+      gl.useProgram(prog);
+      gl.uniform3fv(uni.keyDir, th.key.d); gl.uniform3fv(uni.keyCol, th.key.c);
+      gl.uniform3fv(uni.fillDir, th.fill.d); gl.uniform3fv(uni.fillCol, th.fill.c);
+      gl.uniform3fv(uni.amb, th.amb); gl.uniform3fv(uni.rim, th.rim);
+      gl.uniform1f(uni.rimPow, th.rimPow); gl.uniform1f(uni.specPow, th.specPow);
+    }
+    new MutationObserver(function(){ applyLight(); schedule(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    function build(buf){
+      var u8 = new Uint8Array(buf), dv = new DataView(buf);
+      if (buf.byteLength < 200 || u8[0] !== 0x50 || u8[1] !== 0x43 || u8[2] !== 0x42) return fail();
+      var vCount = dv.getUint32(8, true);
+      var indexCount = dv.getUint32(12, true);
+      var groupCount = dv.getUint32(20, true);
+      var posOffset = dv.getUint32(24, true);
+      var idxOffset = dv.getUint32(28, true);
+      var groupOffset = dv.getUint32(32, true);
+      var idxLen = dv.getUint32(36, true);
+      if (posOffset % 2 || idxOffset + idxLen > buf.byteLength || groupOffset + groupCount * 16 > posOffset) return fail();
+      dec = [dv.getFloat32(48, true), dv.getFloat32(52, true), dv.getFloat32(56, true),
+             dv.getFloat32(60, true), dv.getFloat32(64, true), dv.getFloat32(68, true)];
+      bbox = { min: [dv.getFloat32(72, true), dv.getFloat32(76, true), dv.getFloat32(80, true)],
+               max: [dv.getFloat32(84, true), dv.getFloat32(88, true), dv.getFloat32(92, true)] };
+      /* 顶点:零拷贝 Int16 视图 */
+      var pos = new Int16Array(buf, posOffset, vCount * 3);
+      /* 索引:varint 差分解码(唯一一次 JS 循环) */
+      var idx = new Uint16Array(indexCount);
+      var prev = 0, p = idxOffset;
+      for (var i = 0; i < indexCount; i++){
+        var b = u8[p++], z = b & 0x7F;
+        if (b & 0x80){
+          b = u8[p++]; z |= (b & 0x7F) << 7;
+          if (b & 0x80){ b = u8[p++]; z |= (b & 0x7F) << 14; }
+        }
+        prev += (z >>> 1) ^ -(z & 1);
+        idx[i] = prev;
+      }
+      groups = [];
+      for (var gi = 0; gi < groupCount; gi++){
+        var gp = groupOffset + gi * 16;
+        groups.push({
+          first: dv.getUint32(gp, true),
+          count: dv.getUint32(gp + 4, true),
+          color: [dv.getUint8(gp + 8) / 255, dv.getUint8(gp + 9) / 255, dv.getUint8(gp + 10) / 255],
+          spec: dv.getUint8(gp + 11) / 255
+        });
+      }
+      /* 相机自适应:包围盒球半径 / sin(fov/2) */
+      var rx = (bbox.max[0] - bbox.min[0]) / 2, ry = (bbox.max[1] - bbox.min[1]) / 2, rz = (bbox.max[2] - bbox.min[2]) / 2;
+      var rad = Math.sqrt(rx * rx + ry * ry + rz * rz);
+      HOME.dist = Math.min(6, Math.max(0.8, rad / Math.sin(16 * Math.PI / 180) * 1.05));
+      dist = HOME.dist;
+      if (!buildProgram()) return fail();
+      applyLight();
+      var vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 3, gl.SHORT, false, 6, 0);
+      var ibo = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+      gl.uniform3fv(uni.decS, [dec[0], dec[1], dec[2]]);
+      gl.uniform3fv(uni.decO, [dec[3], dec[4], dec[5]]);
+      syncSize();
+      draw();
+      canvas.classList.add('is-live');
+      shot.style.opacity = '0';
+      stage.classList.add('is-ready');
+      visible = true;
+      schedule();
+    }
+
+    function start(){
+      if (inited || dead) return;
+      inited = true;
+      if (!window.DecompressionStream || !window.atob) return fail();
+      var g = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true });
+      if (!g) return fail();
+      if (!g.getExtension('OES_standard_derivatives')) return fail();
+      var pf = g.getShaderPrecisionFormat && g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
+      if (!pf || pf.precision < 23) return fail();
+      gl = g;
+      /* 模型用 script 标签加载:fetch() 在 file:// 协议下会被 CORS 拦截,script 不受限 */
+      var sc = document.createElement('script');
+      sc.src = 'models/pcb-model.js';
+      sc.onload = function(){
+        var b64 = window.__PCB_DATA;
+        window.__PCB_DATA = null;              /* 及时释放大字符串 */
+        if (!b64) return fail();
+        try {
+          var bin = atob(b64);
+          var raw = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) raw[i] = bin.charCodeAt(i);
+          new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('gzip')))
+            .arrayBuffer()
+            .then(build)
+            .catch(fail);
+        } catch (err) { fail(); }
+      };
+      sc.onerror = fail;
+      document.head.appendChild(sc);
+    }
+
+    /* 可见性:进入 260px 预载区才启动;离开视口暂停 rAF */
+    if ('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){
+        visible = en[0].isIntersecting && inited;
+        if (visible){ syncSize(); schedule(); }
+      }, { rootMargin: '0px' }).observe(stage);
+      var pre = new IntersectionObserver(function(en){
+        if (en[0].isIntersecting){ pre.disconnect(); start(); }
+      }, { rootMargin: '260px' });
+      pre.observe(stage);
+    } else {
+      start();
+      visible = true;
+    }
+    /* 上下文丢失 → 回退静态图 */
+    canvas.addEventListener('webglcontextlost', function(e){
+      e.preventDefault();
+      dead = true; gl = null; prog = null;
+      canvas.classList.remove('is-live');
+      shot.style.opacity = '';
+      stage.classList.remove('is-ready');
+    });
+  })();
 })();
 </script>
 
